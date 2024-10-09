@@ -43,8 +43,8 @@
 
 #include "drw.h"
 #include "util.h"
-/* custom patches here will be tracked by git */
 #include <time.h>
+#include <unistd.h>
 
 /* macros */
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
@@ -1381,15 +1381,39 @@ restack(Monitor *m)
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 }
 
-void
-run(void)
-{
-	XEvent ev;
-	/* main event loop */
-	XSync(dpy, False);
-	while (running && !XNextEvent(dpy, &ev))
-		if (handler[ev.type])
-			handler[ev.type](&ev); /* call handler */
+void run(void) {
+    XEvent ev;
+    struct timespec ts;
+    unsigned long last_update = 0; // Variable to track last update time
+
+    // Set the timer for updating the status
+    ts.tv_sec = 1;  // 1 second
+    ts.tv_nsec = 0; // 0 nanoseconds
+
+    XSync(dpy, False); // Synchronize X display
+
+    while (running) {
+        // Check for pending events
+        while (XPending(dpy)) {
+            XNextEvent(dpy, &ev);
+            if (handler[ev.type])
+                handler[ev.type](&ev); // Call the event handler
+        }
+
+        // Get the current time
+        unsigned long current_time = time(NULL);
+
+        // Update status every second
+        if (current_time - last_update >= 1) {
+            updatestatus(); // Update the status bar with the current time
+            last_update = current_time; // Reset the last update time
+        }
+
+        // Add a small sleep to prevent CPU usage from maxing out
+        ts.tv_sec = 0;        // Sleep for 0 seconds
+        ts.tv_nsec = 100000;  // Sleep for 100 milliseconds
+        nanosleep(&ts, NULL); // Short sleep
+    }
 }
 
 void
@@ -2004,19 +2028,29 @@ updatesizehints(Client *c)
 	c->hintsvalid = 1;
 }
 
-void updatestatus(void) {
-    char time_str[40];
-    time_t now = time(NULL); 
-    struct tm *tm_info = localtime(&now); 
-    strftime(time_str, sizeof(time_str), "%c", tm_info);
+void
+updatestatus(void)
+{
+    char timebuf[16];  // Buffer to store the formatted time
+    time_t current_time;
+    struct tm *time_info;
 
-    snprintf(stext, sizeof(stext), "%s | dwm-%s :) ", time_str, VERSION);
+    // Get the current time and format it as "HH:MM"
+    time(&current_time);
+    time_info = localtime(&current_time);
+    strftime(timebuf, sizeof(timebuf), "%H:%M", time_info);
 
-    if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext))) {
-        strcpy(stext, "dwm-" VERSION " :)");
-    }
-    drawbar(selmon);
+    // If the WM_NAME property isn't set, default to "dwm-VERSION"
+    if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
+        strcpy(stext, "dwm-"VERSION);
+
+    // Append the time to the existing status text
+    strcat(stext, " | ");
+    strcat(stext, timebuf);
+
+    drawbar(selmon);  // Redraw the bar with the updated status
 }
+
 void
 updatetitle(Client *c)
 {
