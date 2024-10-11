@@ -12,28 +12,12 @@ static const char col_gray1[]       = "#222222";
 static const char col_gray2[]       = "#444444";
 static const char col_gray3[]       = "#bbbbbb";
 static const char col_gray4[]       = "#eeeeee";
-static const char col_cyan_def[]    = "#005577";
-static const char col_cyan[]        = "#8BB6E2";
-static const char col_green[]       = "#69F2B9";
-static const char col_purple[]      = "#5F6181";
-static const char col_yellow[]      = "#98871F";
-
-/* static const char *colors[][3]      = { */
-/* 	/1*               fg         bg         border   *1/ */
-/* 	[SchemeNorm] = { col_green, col_purple, col_cyan }, */
-/* 	[SchemeSel]  = { col_gray4, col_cyan_def,  col_yellow}, */
-/* }; */
-static const char col_gray1[]       = "#222222";
-static const char col_gray2[]       = "#444444";
-static const char col_gray3[]       = "#bbbbbb";
-static const char col_gray4[]       = "#eeeeee";
 static const char col_cyan[]        = "#005577";
 static const char col_brown[]       = "#361a09";
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
 	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
-	[SchemeTitle] = { col_gray4, col_cyan,  col_cyan },
 };
 /* tagging */
 static const char *tags[] = { " ", "", "", "", "5", "6", "7", "8", "9" };
